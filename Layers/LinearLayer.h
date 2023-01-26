@@ -1,16 +1,16 @@
-//
-// Created by vlads on 23.01.2023.
-//
-
 #ifndef LIBRARY_LINEARLAYER_H
 #define LIBRARY_LINEARLAYER_H
 
 #include "../Matrix.h"
-#include "Layer.h"
+#include "../lib.h"
 
-class LinearLayer : Layer {
+using namespace lib;
+
+
+class LinearLayer {
     Matrix weights = Matrix(1, 1, 1.0f);
     vector<float> bias;
+    layerType type = Linear;
 
 public:
     LinearLayer(int input, int output, string initType, bool bias) {
@@ -32,35 +32,49 @@ public:
 
     vector<float> forward(vector<float> X) {
         vector<float> result;
-        float currentResult;
-        for (int i = 0; i < X.size(); i++) {
-            currentResult = 0;
-            for (int j = 0; j < weights.getSize().first; j++) {
-                currentResult += X[i] * this->weights[j][i];
-            }
-            result.push_back(currentResult + this->bias[i]);
+        for (int i = 0; i < this->weights.getSize().second; i++) {
+            result.push_back(0);
         }
+
+        for (int i = 0; i < result.size(); i++) {
+            for (int j = 0; j < X.size(); j++) {
+                result[i] += X[j] * this->weights[j][i];
+            }
+            result[i] += this->bias[i];
+        }
+        cout << endl;
+
         return result;
     };
 
     vector<float> backward(vector<float> errors, float learningRate) {
         vector<float> newErrors;
-        float currentSum;
+        for (int i = 0; i < this->weights.getSize().first; i++) {
+            newErrors.push_back(0);
+        }
         for (int i = 0; i < this->weights.getSize().second; i++) {
-            currentSum = 0;
-            for (int j = 0; j < this->weights.getSize().first; j++) {
+            for(int j = 0; j < this->weights.getSize().first; j++){
                 this->weights[j][i] -= errors[i] * learningRate;
-                currentSum += this->weights[j][i] * errors[i];
             }
-            newErrors.push_back(currentSum);
+        }
+
+        for(int i = 0; i < this->weights.getSize().first;i++){
+            for(int j = 0; j < this->weights.getSize().second;j++){
+                newErrors[i] += errors[j] * this->weights[i][j];
+            }
         }
 
         return newErrors;
     };
 
-    pair<int, int> getInfo(){
+    pair<int, int> getInfo() {
         return this->weights.getSize();
     }
+
+    layerType getType() {
+        return this->type;
+    }
+
 };
 
 
